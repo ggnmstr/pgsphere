@@ -55,6 +55,7 @@ PG_FUNCTION_INFO_V1(spheretrans_poly);
 PG_FUNCTION_INFO_V1(spheretrans_poly_inverse);
 PG_FUNCTION_INFO_V1(spherepoly_add_point);
 PG_FUNCTION_INFO_V1(spherepoly_add_points_finalize);
+PG_FUNCTION_INFO_V1(spherepoly_is_convex);
 
 
  /*
@@ -1430,4 +1431,53 @@ spherepoly_add_points_finalize(PG_FUNCTION_ARGS)
 		PG_RETURN_NULL();
 	}
 	PG_RETURN_POINTER(poly);
+}
+
+
+Datum
+spherepoly_is_convex(PG_FUNCTION_ARGS)
+{
+	Vector3D	u,
+				v,
+				vsu,
+				wsv,
+				crs;
+	float8		cur = 0,
+				prev = 0;
+	SPOLY		*poly = (SPOLY *) PG_GETARG_POINTER(0);
+
+	if (poly == NULL)
+	{
+		PG_RETURN_NULL();
+	}
+
+	poly = PG_GETARG_SPOLY(0);
+	if (poly->npts == 3)
+	{
+		PG_RETURN_BOOL(true);
+	}
+	for (int i = 0; i < poly->npts; i++)
+	{
+		int j = (i-1+poly->npts) % poly->npts;
+		int k = (i+1) % poly->npts;
+
+		spoint_vector3d(&u,&poly->p[i]);
+		spoint_vector3d(&v,&poly->p[j]);
+		spoint_vector3d(&vsu,&poly->p[j]);
+		spoint_vector3d(&wsv,&poly->p[k]);
+
+		vector3d_addwithscalar(&vsu,-1,&u);
+		vector3d_addwithscalar(&wsv,-1,&v);
+
+		vector3d_cross(&crs,&vsu,&wsv);
+
+		cur = vector3d_scalar(&crs,&v);
+		if (cur * prev < 0)
+		{
+			PG_RETURN_BOOL(false);
+		}
+		prev = cur;
+
+	}
+	PG_RETURN_BOOL(true);
 }

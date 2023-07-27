@@ -593,3 +593,8 @@ SELECT npoints( spoly '{
   (1.5121581120647 , -1.93925472462553e-05),
   (1.51214841579108 , -1.93925472462553e-05)
 }');
+
+-- spoly is convex
+SELECT spoly_is_convex(spoly'{(53d 45m 35.0s, 37d 6m 30.0s), (52d 21m 36.0s, 41d 36m 7.0s), (54d 14m 18.0s, 45d 1m 35.0s), (51d 23m 3.0s, 45d 22m 49.0s), (51d 2m 12.0s, 41d 52m 1.0s), (50d 41m 47.0s, 38d 22m 0s) }');
+SELECT spoly_is_convex(spoly'{(12d,32d),(34d,12d),(59d,21d),(69d,21d)}');
+SELECT spoly_is_convex(spoly'{(12d,32d),(34d,12d),(59d,21d),(34d,40d)}');
